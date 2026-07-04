@@ -25,3 +25,4 @@ results_table = """
         FOREIGN KEY (questions_id) REFERENCES questions(id) ON DELETE CASCADE
     )
 """
+#
