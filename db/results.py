@@ -13,4 +13,4 @@ def get_score(user_id: int):
     row = conn.execute(GET_SCORE_BY_USER_ID, (user_id, )).fetchone()
     conn.close()
     return dict(row) if row else {'total': 0, 'correct': 0}
-    
+    #

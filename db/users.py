@@ -22,3 +22,4 @@ def create_user(telegram_id: int, username: str):
     conn.commit()
     conn.close
     return get_user(telegram_id)
+#

@@ -6,7 +6,7 @@ from db.queriess import (
     CREATE_QUESTIONS_TABLE, 
     CREATE_RESULTS_TABLE
 )
-
+#
 def get_db():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row

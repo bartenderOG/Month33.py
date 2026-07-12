@@ -30,3 +30,4 @@ def delete_questions(questions_id):
     )
     conn.commit()
     conn.close()
+    #
