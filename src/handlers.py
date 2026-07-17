@@ -13,12 +13,8 @@ from src.keyboards import keyboard_main, inline
 from config import users_data
 from src.keyboards import get_start_keyboard, get_confirmation_keyboard
 from db.users import get_user, create_user
-from db.results import get_score
-from db.questions import (
-    add_questions,
-    get_all_questions,
-    delete_questions
-)
+from db.results import get_score, save_results
+from db.questions import get_all_questions, get_question, add_questions, delete_question
 
 router = Router()
 
@@ -74,7 +70,7 @@ async def my_score(callback: CallbackQuery):
     )
 
     await callback.answer('')
-    await callback.message.answer(f"Твой счет: {data['correct'] or 0}/{data["total"] or 0}", show_alert=True)
+    await callback.message.answer(f"Твой счет: {data['correct'] or 0}/{data['total'] or 0}")
 
 
 #СТАРТ ВИКТОРИНЫ
@@ -83,33 +79,46 @@ async def my_score(callback: CallbackQuery):
 @router.callback_query(F.data == "show_start")
 async def show_start(callback: CallbackQuery, state: FSMContext):
     await callback.answer('Вы готовы инвалиды?', show_alert=True)
-    await state.update_data(index=0, score=0)
+    questions = get_all_questions()
+    if not questions:
+        await callback.message.answer('Вопросов нет в базе')
+        return
+    
+    await state.update_data(questions=questions, index=0, score=0)
     await state.set_state(Quiz.waiting_answer)
-    await callback.message.answer(f"Вопрос 1: {QUESTIONS[0]['q']}")
+    await callback.message.answer(f"Вопрос 1: {questions[0]['questions_text']}")
 
 
 @router.message(Quiz.waiting_answer)
 async def handle_answer(message: Message, state: FSMContext):
     data = await state.get_data()
+    questions = data["questions"]
     index = data["index"]
     score = data["score"]
+    user = get_user(message.from_user.id)
+    q = questions[index]
 
+    is_correct = message.text.lower() == q[index]["correct_answer"]
+    save_results(
+        user_id=user["id"],
+        question_id=q["id"],
+        is_correct=is_correct
+    )
 
-    if message.text.lower() == QUESTIONS[index]["a"]:
+    if is_correct:
         score += 1
-        await message.answer("Правильно! +1")
+        await message.answer("Right! +1")
     else:
-        await message.answer(f"Неправильно! Правильный ответ: {QUESTIONS[index]['a']}")    
-    
+        await message.answer(f"Wrong! Right answer: {q['correct_answer']}")
+
     index += 1
-    if index >= len(QUESTIONS):
-        await message.answer(f"Игра окончена! Ваш счет: {score}/{len(QUESTIONS)}")
+
+    if index >= len(questions):
+        await message.answer(f"Игра окончена! Ваш счет: {score}/{len(questions)}")
         await state.clear()
     else:
         await state.update_data(index=index, score=score)
-        await message.answer(f"Вопрос {index + 1}: {QUESTIONS[index]['q']}")
-
-
+        await message.answer(f"Вопрос {index + 1}: {questions[index]['questions_text']}")
 
 @router.message(Command('list'))
 async def list_questions(message: Message):
@@ -146,7 +155,7 @@ async def add_question(message: Message):
 
 
 @router.message(Command('del'))
-async def delete_question(message: Message):
+async def delete_questions(message: Message):
     data = message.text.replace("/del ", "")
     if not data.isdigit():
         await message.answer('Введи айдишник вопроса.')

@@ -1,33 +1,32 @@
 from db.database import get_db
-from db.queriess import (
-    INSERT_QUESTIONS,
-    SELECT_ALL_QUESTIONS,
-    DELETE_QUESTIONS
-)
+from db.queriess import GET_ALL_QUESTIONS, GET_QUESTION_BY_ID, INSERT_QUESTION, DELETE_QUESTION
 
-def add_questions(text, answer):
-    conn = get_db()
-    conn.execute(
-        INSERT_QUESTIONS, (text, answer)
-    )
-    conn.commit()
-    conn.close()
 
 def get_all_questions():
     conn = get_db()
-    conn = conn.execute(SELECT_ALL_QUESTIONS)
-    questions = conn.fetchall()
+    rows = conn.execute(GET_ALL_QUESTIONS).fetchall()
     conn.close()
-    return questions
-
-    
+    return [dict(r) for r in rows]
 
 
-def delete_questions(questions_id):
+def get_question(question_id: int):
     conn = get_db()
-    conn.execute(
-        DELETE_QUESTIONS, (questions_id, )
-    )
+    row = conn.execute(GET_QUESTION_BY_ID, (question_id, )).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+
+def add_questions(question_text: str, correct_answer: str):
+    conn = get_db()
+    conn.execute(INSERT_QUESTION, (question_text, correct_answer))
     conn.commit()
     conn.close()
-    #
+
+
+
+def delete_question(questions_id):
+    conn = get_db()
+    conn.execute(DELETE_QUESTION, (questions_id, ))
+    conn.commit()
+    conn.close()

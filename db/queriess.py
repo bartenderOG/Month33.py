@@ -60,16 +60,11 @@ GET_SCORE_BY_USER_ID = """
 
 # -- QUESTIONS --
 
-INSERT_QUESTIONS = """
-    INSERT INTO questions (questions_text, correct_answer) VALUES (?, ?)
-"""
+GET_ALL_QUESTIONS = 'SELECT * FROM questions'
 
-SELECT_ALL_QUESTIONS = """
-    SELECT * FROM questions ORDER BY id
-"""
+GET_QUESTION_BY_ID = 'SELECT * FROM questions WHERE id = ?'
 
-DELETE_QUESTIONS = """
-    DELETE FROM questions WHERE id = ?
-"""
+INSERT_QUESTION = 'INSERT INTO questions (questions_text, correct_answer) VALUES (?, ?)'
 
-#
+DELETE_QUESTION = 'DELETE FROM questions WHERE id = ?'
+
