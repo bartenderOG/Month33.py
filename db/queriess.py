@@ -68,3 +68,47 @@ INSERT_QUESTION = 'INSERT INTO questions (questions_text, correct_answer) VALUES
 
 DELETE_QUESTION = 'DELETE FROM questions WHERE id = ?'
 
+
+# -- STATS --
+
+GET_HISTORY = """
+    SELECT q.questions_text,r.is_correct
+    FROM results AS r
+    INNER JOIN users AS u
+        ON r.user_id = u.id
+
+    INNER JOIN questions AS q
+        ON r.questions_id = q.id
+
+    WHERE u.telegram_id = ?
+    
+    ORDER BY r.id DESC
+    LIMIT 5
+"""
+
+
+GET_TOP = """
+    SELECT u.username,
+    COUNT(*) AS total,
+    SUM(is_correct) AS correct
+
+    FROM results AS r
+
+    INNER JOIN users AS u
+        ON r.user_id = u.id
+
+    GROUP BY r.user_id
+    ORDER BY correct DESC
+    LIMIT ?
+"""
+
+GET_HARDEST = """
+    SELECT q.questions_text,
+        ROUND(AVG(r.is_correct) * 100, 1) AS success_rate
+    FROM results AS r
+    INNER JOIN questions AS q
+        ON r.questions_id = q.id
+    GROUP BY r.questions_id
+    ORDER BY success_rate
+    LIMIT 1
+"""

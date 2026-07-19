@@ -7,6 +7,7 @@ from db.queriess import (
 )
 
 
+
 def get_user(telegram_id: int):
     conn = get_db()
     user = conn.execute(GET_USER_BY_TG_ID, (telegram_id, )).fetchone()

@@ -1,0 +1,60 @@
+-- database: ./quiz.db
+
+SELECT * FROM results;
+SELECT * FROM users;
+SELECT * FROM questions;
+
+SELECT username, questions_text, is_correct
+FROM results
+INNER JOIN users
+    ON users.id = results.user_id
+INNER JOIN questions
+    ON questions.id = results.questions_id
+WHERE is_correct = 0 AND questions_id = 4;
+
+SELECT questions_text, COUNT(is_correct) as not_correct
+FROM questions
+INNER JOIN results
+ON questions.id = results.questions_id
+GROUP BY questions_text
+HAVING not_correct >= 5;
+
+
+
+SELECT q.questions_text,r.is_correct
+FROM results AS r
+INNER JOIN users AS u
+    ON r.user_id = u.id
+
+INNER JOIN questions AS q
+    ON r.questions_id = q.id
+
+WHERE u.telegram_id = 7555782378
+ORDER BY r.id DESC
+LIMIT 5;
+
+
+-- COUNT()
+--  SUM()
+-- AVG()
+-- MAX()
+-- MIN()
+SELECT MIN(telegram_id), username FROM users;
+
+
+
+
+
+
+-- SELECT * FROM questions 
+-- WHERE questions_text LIKE '%столица%'
+
+
+-- SELECT * FROM users
+-- WHERE id in (1, 5, 9)
+
+
+
+
+SELECT * FROM users
+WHERE username = ''

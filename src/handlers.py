@@ -15,6 +15,9 @@ from src.keyboards import get_start_keyboard, get_confirmation_keyboard
 from db.users import get_user, create_user
 from db.results import get_score, save_results
 from db.questions import get_all_questions, get_question, add_questions, delete_question
+from db.stats import get_history, get_top, get_hardest
+
+
 
 router = Router()
 
@@ -53,6 +56,48 @@ async def cmd_help(message: Message):
         
     )
 
+
+@router.message(Command('history'))
+async def cmd_history(message:  Message):
+    history = get_history(message.from_user.id)
+    if not history:
+        await message.answer("You don't have HISTORY!!!")
+        return
+    text = "Last answers:\n\n"
+    for i, row in enumerate(history, 1):
+        mark = "Got it!" if row['is_correct'] else "NOT"
+        text += f"{i}. {mark} - {row["question_text"]}\n"
+    await message.answer(text)
+
+@router.message(Command('top'))
+async def cmd_top(message: Message):
+    players = get_top(5)
+    if not players:
+        await message.answer("No ones play. Be first!")
+        return
+    
+    text = "Top players: \n\n"
+    for i, p in enumerate(players, 1):
+        text += f"{i}. {p["username"]} - {p["correct"]}/{p["total"]}"
+    await message.answer(text)
+
+
+
+@router.message(Command('hardest'))
+async def cmd_hardest(message: Message):
+    q = get_hardest()
+    if not q:
+        await message.answer("No ones saved.Try later!")
+        return
+    await message.answer(
+        f"The hardest question:\n"
+        f"{q["questions_text"]}\n"
+        f"True ones: {q["success_rate"]}"
+    )
+
+
+
+
 @router.message(Command('game'))
 async def cmd_game(message: Message):
     await message.answer("Начнем игру! Выберите вариант:", reply_markup=inline)
@@ -86,7 +131,7 @@ async def show_start(callback: CallbackQuery, state: FSMContext):
     
     await state.update_data(questions=questions, index=0, score=0)
     await state.set_state(Quiz.waiting_answer)
-    await callback.message.answer(f"Вопрос 1: {questions[0]['questions_text']}")
+    await callback.message.answer(f"Вопрос 1: {questions[0]['question_text']}")
 
 
 @router.message(Quiz.waiting_answer)
@@ -98,7 +143,7 @@ async def handle_answer(message: Message, state: FSMContext):
     user = get_user(message.from_user.id)
     q = questions[index]
 
-    is_correct = message.text.lower() == q[index]["correct_answer"]
+    is_correct = message.text.lower() == q["correct_answer"]
     save_results(
         user_id=user["id"],
         question_id=q["id"],
